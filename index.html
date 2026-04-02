@@ -61,11 +61,55 @@
         </div>
       </div>
     </div>
+    
   </body>
 
   <script>
     "use strict";
-    // Код писать здесь
+    
+    const commentsEl = document.querySelector("ul.comments");
+    const addBtnEl = document.querySelector("button.add-form-button");
+
+    addBtnEl.addEventListener('click',()=>{
+      const oldHTML = commentsEl.innerHTML;
+      const nameEl = document.querySelector('.add-form-name');
+      const textEl = document.querySelector('.add-form-text');
+
+      console.log(nameEl);
+
+
+      if (nameEl.value === '' || textEl.value === ''){
+          return;
+      }
+
+      const date = new Date();
+
+      const dateOptions = {year: '2-digit', month:'2-digit', day: '2-digit'};
+      const dateStr = date.toLocaleDateString('ru-RU', dateOptions);
+
+      const timeOptions = {hour: '2-digit', minute:'2-digit'};
+      const timeStr = date.toLocaleTimeString('ru-RU', timeOptions);
+
+
+      commentsEl.innerHTML = oldHTML + `<li class="comment">
+        <div class="comment-header">
+          <div>${nameEl.value}</div>
+          <div>${dateStr} ${timeStr}</div>
+        </div>
+        <div class="comment-body">
+          <div class="comment-text">
+            ${textEl.value}
+          </div>
+        </div>
+        <div class="comment-footer">
+          <div class="likes">
+            <span class="likes-counter">0</span>
+            <button class="like-button"></button>
+          </div>
+        </div>
+      </li>`;
+    })
+
     console.log("It works!");
   </script>
 </html>
