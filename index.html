@@ -69,17 +69,22 @@
     
     const commentsEl = document.querySelector("ul.comments");
     const addBtnEl = document.querySelector("button.add-form-button");
+    const nameEl = document.querySelector('.add-form-name');
+    const textEl = document.querySelector('.add-form-text');
+
     const comments = [
       {name: 'Глеб Фокин', text: 'Это будет первый комментарий на этой странице', date: '12.02.22 12:18', likesCount: 3, liked: false},
       {name: 'Варвара Н.', text: 'Мне нравится как оформлена эта страница! ❤', date: '13.02.22 19:22', likesCount: 75, liked: true}
      ];
 
 
-    const initLikeListeners = () => {
+    const initListeners = () => {
       const likeBtns = commentsEl.querySelectorAll('.like-button');
+      const commentEls = commentsEl.querySelectorAll('.comment');
       for(let btn of likeBtns){
         let index = +btn.dataset.index;
-        btn.addEventListener('click',()=>{
+        btn.addEventListener('click',(event)=>{
+          event.stopPropagation();
           if(comments[index].liked){
             comments[index].liked = false;
             comments[index].likesCount--;
@@ -91,12 +96,19 @@
           renderComments();
         })
       }
+      for(let comment of commentEls){
+        let index = +comment.dataset.index;
+        comment.addEventListener('click',()=>{
+          textEl.value = `>${comments[index].name}\n"${comments[index].text}"\n`.replaceAll("&gt;",">").replaceAll("&lt;","<");
+        })
+      }
+      
     }
 
 
     const renderComments = () =>{
       commentsEl.innerHTML = comments.map((comment,index)=>{
-        return `<li class="comment">
+        return `<li class="comment" data-index="${index}">
         <div class="comment-header">
           <div>${comment.name}</div>
           <div>${comment.date}</div>
@@ -109,13 +121,13 @@
         <div class="comment-footer">
           <div class="likes">
             <span class="likes-counter">${comment.likesCount}</span>
-            <button class="like-button ${comment.liked?'-active-like':''}" data-index="${index}" "></button>
+            <button class="like-button ${comment.liked?'-active-like':''}" data-index="${index}"></button>
           </div>
         </div>
       </li>`;
       }).join('');
 
-      initLikeListeners();
+      initListeners();
     } 
 
     renderComments();
@@ -124,10 +136,7 @@
 
 
 
-    addBtnEl.addEventListener('click',()=>{
-      const oldHTML = commentsEl.innerHTML;
-      const nameEl = document.querySelector('.add-form-name');
-      const textEl = document.querySelector('.add-form-text');
+    addBtnEl.addEventListener('click',()=>{    
 
       if (nameEl.value === '' || textEl.value === ''){
           return;
@@ -142,7 +151,7 @@
       const timeStr = date.toLocaleTimeString('ru-RU', timeOptions);
 
 
-      comments.push({name: nameEl.value, text: textEl.value, date: `${dateStr} ${timeStr}`, likesCount: 0, liked: false});
+      comments.push({name: nameEl.value.replaceAll("<","&lt;").replaceAll(">","&gt;"), text: textEl.value.replaceAll("<","&lt;").replaceAll(">","&gt;"), date: `${dateStr} ${timeStr}`, likesCount: 0, liked: false});
       renderComments();
     })
 
