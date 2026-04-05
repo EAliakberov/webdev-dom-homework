@@ -69,14 +69,65 @@
     
     const commentsEl = document.querySelector("ul.comments");
     const addBtnEl = document.querySelector("button.add-form-button");
+    const comments = [
+      {name: 'Глеб Фокин', text: 'Это будет первый комментарий на этой странице', date: '12.02.22 12:18', likesCount: 3, liked: false},
+      {name: 'Варвара Н.', text: 'Мне нравится как оформлена эта страница! ❤', date: '13.02.22 19:22', likesCount: 75, liked: true}
+     ];
+
+
+    const initLikeListeners = () => {
+      const likeBtns = commentsEl.querySelectorAll('.like-button');
+      for(let btn of likeBtns){
+        let index = +btn.dataset.index;
+        btn.addEventListener('click',()=>{
+          if(comments[index].liked){
+            comments[index].liked = false;
+            comments[index].likesCount--;
+          }
+          else{
+            comments[index].liked = true;
+            comments[index].likesCount++;
+          }
+          renderComments();
+        })
+      }
+    }
+
+
+    const renderComments = () =>{
+      commentsEl.innerHTML = comments.map((comment,index)=>{
+        return `<li class="comment">
+        <div class="comment-header">
+          <div>${comment.name}</div>
+          <div>${comment.date}</div>
+        </div>
+        <div class="comment-body">
+          <div class="comment-text">
+            ${comment.text}
+          </div>
+        </div>
+        <div class="comment-footer">
+          <div class="likes">
+            <span class="likes-counter">${comment.likesCount}</span>
+            <button class="like-button ${comment.liked?'-active-like':''}" data-index="${index}" "></button>
+          </div>
+        </div>
+      </li>`;
+      }).join('');
+
+      initLikeListeners();
+    } 
+
+    renderComments();
+
+
+
+
 
     addBtnEl.addEventListener('click',()=>{
       const oldHTML = commentsEl.innerHTML;
       const nameEl = document.querySelector('.add-form-name');
       const textEl = document.querySelector('.add-form-text');
-
-      console.log(nameEl);
-
 
       if (nameEl.value === '' || textEl.value === ''){
           return;
@@ -91,23 +142,8 @@
       const timeStr = date.toLocaleTimeString('ru-RU', timeOptions);
 
 
-      commentsEl.innerHTML = oldHTML + `<li class="comment">
-        <div class="comment-header">
-          <div>${nameEl.value}</div>
-          <div>${dateStr} ${timeStr}</div>
-        </div>
-        <div class="comment-body">
-          <div class="comment-text">
-            ${textEl.value}
-          </div>
-        </div>
-        <div class="comment-footer">
-          <div class="likes">
-            <span class="likes-counter">0</span>
-            <button class="like-button"></button>
-          </div>
-        </div>
-      </li>`;
+      comments.push({name: nameEl.value, text: textEl.value, date: `${dateStr} ${timeStr}`, likesCount: 0, liked: false});
+      renderComments();
     })
 
     console.log("It works!");
