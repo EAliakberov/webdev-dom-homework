@@ -54,24 +54,17 @@ export const initListeners = () => {
         fetch("https://wedev-api.sky.pro/api/v1/:ealiakberov/comments", {
             method: "POST",
             body: JSON.stringify(newComment),
-        })
-            .then((response) => {
-                return response.json();
-            })
-            .then((data) => {
-                fetch(
-                    "https://wedev-api.sky.pro/api/v1/:ealiakberov/comments",
-                    {
-                        method: "GET",
-                    },
-                )
-                    .then((response) => {
-                        return response.json();
-                    })
-                    .then((data) => {
-                        updateComments(data.comments);
-                        renderComments();
-                    });
-            });
+        }).then(() => {
+            return fetch(
+                "https://wedev-api.sky.pro/api/v1/:ealiakberov/comments",
+            )
+                .then((response) => {
+                    return response.json();
+                })
+                .then((data) => {
+                    updateComments(data.comments);
+                    renderComments();
+                });
+        });
     });
 };
