@@ -9,40 +9,6 @@
   <body>
     <div class="container">
       <ul class="comments">
-        <li class="comment">
-          <div class="comment-header">
-            <div>Глеб Фокин</div>
-            <div>12.02.22 12:18</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Это будет первый комментарий на этой странице
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">3</span>
-              <button class="like-button"></button>
-            </div>
-          </div>
-        </li>
-        <li class="comment">
-          <div class="comment-header">
-            <div>Варвара Н.</div>
-            <div>13.02.22 19:22</div>
-          </div>
-          <div class="comment-body">
-            <div class="comment-text">
-              Мне нравится как оформлена эта страница! ❤
-            </div>
-          </div>
-          <div class="comment-footer">
-            <div class="likes">
-              <span class="likes-counter">75</span>
-              <button class="like-button -active-like"></button>
-            </div>
-          </div>
-        </li>
       </ul>
       <div class="add-form">
         <input
@@ -64,97 +30,6 @@
     
   </body>
 
-  <script>
-    "use strict";
-    
-    const commentsEl = document.querySelector("ul.comments");
-    const addBtnEl = document.querySelector("button.add-form-button");
-    const nameEl = document.querySelector('.add-form-name');
-    const textEl = document.querySelector('.add-form-text');
-
-    const comments = [
-      {name: 'Глеб Фокин', text: 'Это будет первый комментарий на этой странице', date: '12.02.22 12:18', likesCount: 3, liked: false},
-      {name: 'Варвара Н.', text: 'Мне нравится как оформлена эта страница! ❤', date: '13.02.22 19:22', likesCount: 75, liked: true}
-     ];
-
-
-    const initListeners = () => {
-      const likeBtns = commentsEl.querySelectorAll('.like-button');
-      const commentEls = commentsEl.querySelectorAll('.comment');
-      for(let btn of likeBtns){
-        let index = +btn.dataset.index;
-        btn.addEventListener('click',(event)=>{
-          event.stopPropagation();
-          if(comments[index].liked){
-            comments[index].liked = false;
-            comments[index].likesCount--;
-          }
-          else{
-            comments[index].liked = true;
-            comments[index].likesCount++;
-          }
-          renderComments();
-        })
-      }
-      for(let comment of commentEls){
-        let index = +comment.dataset.index;
-        comment.addEventListener('click',()=>{
-          textEl.value = `>${comments[index].name}\n"${comments[index].text}"\n`.replaceAll("&gt;",">").replaceAll("&lt;","<");
-        })
-      }
-      
-    }
-
-
-    const renderComments = () =>{
-      commentsEl.innerHTML = comments.map((comment,index)=>{
-        return `<li class="comment" data-index="${index}">
-        <div class="comment-header">
-          <div>${comment.name}</div>
-          <div>${comment.date}</div>
-        </div>
-        <div class="comment-body">
-          <div class="comment-text">
-            ${comment.text}
-          </div>
-        </div>
-        <div class="comment-footer">
-          <div class="likes">
-            <span class="likes-counter">${comment.likesCount}</span>
-            <button class="like-button ${comment.liked?'-active-like':''}" data-index="${index}"></button>
-          </div>
-        </div>
-      </li>`;
-      }).join('');
-
-      initListeners();
-    } 
-
-    renderComments();
-
-
-
-
-
-    addBtnEl.addEventListener('click',()=>{    
-
-      if (nameEl.value === '' || textEl.value === ''){
-          return;
-      }
-
-      const date = new Date();
-
-      const dateOptions = {year: '2-digit', month:'2-digit', day: '2-digit'};
-      const dateStr = date.toLocaleDateString('ru-RU', dateOptions);
-
-      const timeOptions = {hour: '2-digit', minute:'2-digit'};
-      const timeStr = date.toLocaleTimeString('ru-RU', timeOptions);
-
-
-      comments.push({name: nameEl.value.replaceAll("<","&lt;").replaceAll(">","&gt;"), text: textEl.value.replaceAll("<","&lt;").replaceAll(">","&gt;"), date: `${dateStr} ${timeStr}`, likesCount: 0, liked: false});
-      renderComments();
-    })
-
-    console.log("It works!");
+  <script type="module" src="index.js">    
   </script>
 </html>
