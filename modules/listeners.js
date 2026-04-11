@@ -1,58 +1,77 @@
-import { comments } from "./comments.js";
+import { comments, updateComments } from "./comments.js";
 import { renderLike, renderComments } from "./renders.js";
 import { commentsEl } from "./renders.js";
 
 export const initListeners = () => {
-  const commentEls = commentsEl.querySelectorAll(".comment");
-  const nameEl = document.querySelector(".add-form-name");
-  const textEl = document.querySelector(".add-form-text");
-  const addBtnEl = document.querySelector("button.add-form-button");
+    const commentEls = commentsEl.querySelectorAll(".comment");
+    const nameEl = document.querySelector(".add-form-name");
+    const textEl = document.querySelector(".add-form-text");
+    const addBtnEl = document.querySelector("button.add-form-button");
 
-  for (let commentEl of commentEls) {
-    const likeBtn = commentEl.querySelector(".like-button");
-    let index = +likeBtn.dataset.index;
+    for (let commentEl of commentEls) {
+        const likeBtn = commentEl.querySelector(".like-button");
+        let index = +likeBtn.dataset.index;
 
-    //Клик по самому комменту
-    commentEl.addEventListener("click", () => {
-      textEl.value = `>${comments[index].name}\n"${comments[index].text}"\n`
-        .replaceAll("&gt;", ">")
-        .replaceAll("&lt;", "<");
-    });
+        //Клик по самому комменту
+        commentEl.addEventListener("click", () => {
+            textEl.value =
+                `>${comments[index].name}\n"${comments[index].text}"\n`
+                    .replaceAll("&gt;", ">")
+                    .replaceAll("&lt;", "<");
+        });
 
-    //Клик по лайку внутри коммента и вызов перерисоки только лайков
-    likeBtn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      if (comments[index].liked) {
-        comments[index].liked = false;
-        comments[index].likesCount--;
-      } else {
-        comments[index].liked = true;
-        comments[index].likesCount++;
-      }
-      renderLike(commentEl, index);
-    });
-  }
-
-  addBtnEl.addEventListener("click", () => {
-    if (nameEl.value.trim() === "" || textEl.value.trim() === "") {
-      return;
+        //Клик по лайку внутри коммента и вызов перерисовки только лайков
+        likeBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (comments[index].isliked) {
+                comments[index].isliked = false;
+                comments[index].likes--;
+            } else {
+                comments[index].isliked = true;
+                comments[index].likes++;
+            }
+            renderLike(commentEl, index);
+        });
     }
 
-    const date = new Date();
+    //Нажатие на кнопку
+    addBtnEl.addEventListener("click", () => {
+        if (nameEl.value.trim() === "" || textEl.value.trim() === "") {
+            return;
+        }
 
-    const dateOptions = { year: "2-digit", month: "2-digit", day: "2-digit" };
-    const dateStr = date.toLocaleDateString("ru-RU", dateOptions);
+        let newComment = {
+            text: textEl.value
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .trim(),
+            name: nameEl.value
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .trim(),
+        };
 
-    const timeOptions = { hour: "2-digit", minute: "2-digit" };
-    const timeStr = date.toLocaleTimeString("ru-RU", timeOptions);
-
-    comments.push({
-      name: nameEl.value.replaceAll("<", "&lt;").replaceAll(">", "&gt;").trim(),
-      text: textEl.value.replaceAll("<", "&lt;").replaceAll(">", "&gt;").trim(),
-      date: `${dateStr} ${timeStr}`,
-      likesCount: 0,
-      liked: false,
+        fetch("https://wedev-api.sky.pro/api/v1/:ealiakberov/comments", {
+            method: "POST",
+            body: JSON.stringify(newComment),
+        })
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => {
+                fetch(
+                    "https://wedev-api.sky.pro/api/v1/:ealiakberov/comments",
+                    {
+                        method: "GET",
+                    },
+                )
+                    .then((response) => {
+                        return response.json();
+                    })
+                    .then((data) => {
+                        updateComments(data.comments);
+                        renderComments();
+                    });
+            });
     });
-    renderComments();
-  });
 };
