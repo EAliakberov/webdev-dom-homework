@@ -58,6 +58,7 @@ export const initAddListener = () => {
 
     addBtnEl.addEventListener("click", () => {
         if (nameEl.value.trim() === "" || textEl.value.trim() === "") {
+            alert("Не оставляйте поля пустыми");
             return;
         }
 
@@ -73,17 +74,22 @@ export const initAddListener = () => {
         };
 
         addForm.style = "display: none";
-        commentsEl.innerHTML += `<div style = "text-align: center;">Подождите, комментарий добавляется</div>`;
+        commentsEl.innerHTML += `<div class = "comments__info" style = "text-align: center;">Подождите, комментарий добавляется</div>`;
 
         fetch("https://wedev-api.sky.pro/api/v1/:ealiakberov/comments", {
             method: "POST",
             body: JSON.stringify(newComment),
         })
-            .then(() => {
-                return fetchAndRenderComments();
+            .then((response) => {
+                if (response.status === 200 || response.status === 201)
+                    return fetchAndRenderComments();
+                if (response.status === 400) {
+                    alert("введите не менее 3х символов в каждом поле!!!");
+                }
             })
             .then(() => {
                 addForm.style = "";
+                commentsEl.querySelector(".comments__info").remove();
             });
     });
 };
