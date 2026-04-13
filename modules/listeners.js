@@ -58,6 +58,7 @@ export const initAddListener = () => {
 
     addBtnEl.addEventListener("click", () => {
         if (nameEl.value.trim() === "" || textEl.value.trim() === "") {
+            alert("Не оставляйте поля пустыми");
             return;
         }
 
