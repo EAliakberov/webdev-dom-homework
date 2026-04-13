@@ -1,7 +1,9 @@
 "use strict";
 
-import { comments } from "./comments.js";
-import { initListeners } from "./listeners.js";
+import { comments, updateComments } from "./comments.js";
+import { initAddListener, initListeners } from "./listeners.js";
+
+export const commentsEl = document.querySelector("ul.comments");
 
 const formatted = new Intl.DateTimeFormat("ru-RU", {
     day: "2-digit",
@@ -11,7 +13,23 @@ const formatted = new Intl.DateTimeFormat("ru-RU", {
     minute: "2-digit",
 });
 
-export const commentsEl = document.querySelector("ul.comments");
+export const fetchAndRenderComments = () => {
+    return fetch("https://wedev-api.sky.pro/api/v1/:ealiakberov/comments", {
+        method: "GET",
+    })
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            updateComments(data.comments);
+            return renderComments();
+        });
+};
+
+export const firstLoading = () => {
+    initAddListener();
+    fetchAndRenderComments();
+};
 
 //Рендер только лайка и счетчика для экономии ресурсов
 export const renderLike = (commentEl, index) => {

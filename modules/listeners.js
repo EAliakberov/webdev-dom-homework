@@ -1,12 +1,19 @@
 import { comments, updateComments } from "./comments.js";
-import { renderLike, renderComments } from "./renders.js";
-import { commentsEl } from "./renders.js";
+import { renderLike, fetchAndRenderComments } from "./fetchAndRender.js";
+import { commentsEl } from "./fetchAndRender.js";
+
+function delay(interval = 900) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve();
+        }, interval);
+    });
+}
 
 export const initListeners = () => {
     const commentEls = commentsEl.querySelectorAll(".comment");
-    const nameEl = document.querySelector(".add-form-name");
+
     const textEl = document.querySelector(".add-form-text");
-    const addBtnEl = document.querySelector("button.add-form-button");
 
     for (let commentEl of commentEls) {
         const likeBtn = commentEl.querySelector(".like-button");
@@ -15,7 +22,7 @@ export const initListeners = () => {
         //Клик по самому комменту
         commentEl.addEventListener("click", () => {
             textEl.value =
-                `>${comments[index].name}\n"${comments[index].text}"\n`
+                `>${comments[index].author.name}\n"${comments[index].text}"\n`
                     .replaceAll("&gt;", ">")
                     .replaceAll("&lt;", "<");
         });
@@ -23,20 +30,35 @@ export const initListeners = () => {
         //Клик по лайку внутри коммента и вызов перерисовки только лайков
         likeBtn.addEventListener("click", (event) => {
             event.stopPropagation();
-            if (comments[index].isliked) {
-                comments[index].isliked = false;
-                comments[index].likes--;
-            } else {
-                comments[index].isliked = true;
-                comments[index].likes++;
-            }
-            renderLike(commentEl, index);
+            likeBtn.classList.add("-loading-like");
+            delay()
+                .then(() => {
+                    if (comments[index].isliked) {
+                        comments[index].isliked = false;
+                        comments[index].likes--;
+                    } else {
+                        comments[index].isliked = true;
+                        comments[index].likes++;
+                    }
+                    renderLike(commentEl, index);
+                })
+                .then(() => {
+                    likeBtn.classList.remove("-loading-like");
+                });
         });
     }
+};
 
-    //Нажатие на кнопку
+//Нажатие на кнопку
+export const initAddListener = () => {
+    const textEl = document.querySelector(".add-form-text");
+    const nameEl = document.querySelector(".add-form-name");
+    const addBtnEl = document.querySelector("button.add-form-button");
+    const addForm = document.querySelector(".add-form");
+
     addBtnEl.addEventListener("click", () => {
         if (nameEl.value.trim() === "" || textEl.value.trim() === "") {
+            alert("Не оставляйте поля пустыми");
             return;
         }
 
@@ -51,27 +73,23 @@ export const initListeners = () => {
                 .trim(),
         };
 
+        addForm.style = "display: none";
+        commentsEl.innerHTML += `<div class = "comments__info" style = "text-align: center;">Подождите, комментарий добавляется</div>`;
+
         fetch("https://wedev-api.sky.pro/api/v1/:ealiakberov/comments", {
             method: "POST",
             body: JSON.stringify(newComment),
         })
             .then((response) => {
-                return response.json();
+                if (response.status === 200 || response.status === 201)
+                    return fetchAndRenderComments();
+                if (response.status === 400) {
+                    alert("введите не менее 3х символов в каждом поле!!!");
+                }
             })
-            .then((data) => {
-                fetch(
-                    "https://wedev-api.sky.pro/api/v1/:ealiakberov/comments",
-                    {
-                        method: "GET",
-                    },
-                )
-                    .then((response) => {
-                        return response.json();
-                    })
-                    .then((data) => {
-                        updateComments(data.comments);
-                        renderComments();
-                    });
+            .then(() => {
+                addForm.style = "";
+                commentsEl.querySelector(".comments__info").remove();
             });
     });
 };
