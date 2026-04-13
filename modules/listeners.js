@@ -74,22 +74,46 @@ export const initAddListener = () => {
         };
 
         addForm.style = "display: none";
-        commentsEl.innerHTML += `<div class = "comments__info" style = "text-align: center;">Подождите, комментарий добавляется</div>`;
+        let statusEl = document.createElement("div");
+        statusEl.textContent = "Подождите, комментарий добавляется";
+        statusEl.classList.add("comments__status");
+        statusEl.style = "text-align: center;";
+        commentsEl.appendChild(statusEl);
 
-        fetch("https://wedev-api.sky.pro/api/v1/:ealiakberov/comments", {
-            method: "POST",
-            body: JSON.stringify(newComment),
-        })
-            .then((response) => {
-                if (response.status === 200 || response.status === 201)
+        const addComment = () => {
+            return fetch(
+                "https://wedev-api.sky.pro/api/v1/:ealiakberov/comments",
+                {
+                    method: "POST",
+                    body: JSON.stringify({ ...newComment, forceError: true }),
+                },
+            )
+                .then((response) => {
+                    if (response.status === 400 || response.status === 500)
+                        throw new Error(response.status);
+                    nameEl.value = "";
+                    textEl.value = "";
                     return fetchAndRenderComments();
-                if (response.status === 400) {
-                    alert("введите не менее 3х символов в каждом поле!!!");
-                }
-            })
-            .then(() => {
-                addForm.style = "";
-                commentsEl.querySelector(".comments__info").remove();
-            });
+                })
+                .catch((error) => {
+                    switch (error.message) {
+                        case "400": {
+                            alert(
+                                "Имя и текст должны быть не менее 3х символов! Попробуйте снова",
+                            );
+                            break;
+                        }
+                        case "500": {
+                            console.log("Сервер сломался");
+                            return addComment();
+                            break;
+                        }
+                    }
+                });
+        };
+        addComment().finally(() => {
+            addForm.style = "";
+            statusEl.remove();
+        });
     });
 };
