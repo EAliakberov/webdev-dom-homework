@@ -86,7 +86,7 @@ export function renderComments() {
     const commentsEl = document.querySelector("ul.comments");
     commentsEl.innerHTML = comments
         .map((comment, index) => {
-            return `<li class="comment" data-id="${comment.id}" data-index="${index}">
+            return `<li class="comment animate__animated animate__fadeInLeft" data-id="${comment.id}" data-index="${index}">
         <div class="comment-header">
           <div>${comment.author.name}</div>
           <div>${formatted.format(new Date(comment.date)).replace(",", "")}</div>
@@ -111,7 +111,7 @@ export function renderComments() {
 
 export function renderLoginPage() {
     containerEl.innerHTML = `
-            <form class="login-form" method="post">
+            <form class="login-form animate__animated animate__headShake" method="post">
                 <input
                     type="text"
                     class="login-form-name"
@@ -137,7 +137,7 @@ export function renderLoginPage() {
 
 export function renderRegistrationPage() {
     containerEl.innerHTML = `
-            <form class="registration-form" method="post">
+            <form class="registration-form  animate__animated animate__headShake" method="post">
                 <input
                     type="text"
                     class="registration-form-login"

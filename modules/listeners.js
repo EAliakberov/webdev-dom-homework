@@ -1,4 +1,10 @@
-import { postComment, login, register } from "./api.js";
+import {
+    postComment,
+    login,
+    register,
+    currentUser,
+    isUserAuthorized,
+} from "./api.js";
 import { comments, updateComments } from "./comments.js";
 import {
     renderLike,
@@ -35,24 +41,25 @@ export const initListeners = () => {
         });
 
         //Клик по лайку внутри коммента и вызов перерисовки только лайков
-        likeBtn.addEventListener("click", (event) => {
-            event.stopPropagation();
-            likeBtn.classList.add("-loading-like");
-            delay()
-                .then(() => {
-                    if (comments[index].isliked) {
-                        comments[index].isliked = false;
-                        comments[index].likes--;
-                    } else {
-                        comments[index].isliked = true;
-                        comments[index].likes++;
-                    }
-                    renderLike(commentEl, index);
-                })
-                .then(() => {
-                    likeBtn.classList.remove("-loading-like");
-                });
-        });
+        if (isUserAuthorized())
+            likeBtn.addEventListener("click", (event) => {
+                event.stopPropagation();
+                likeBtn.classList.add("-loading-like");
+                delay()
+                    .then(() => {
+                        if (comments[index].isliked) {
+                            comments[index].isliked = false;
+                            comments[index].likes--;
+                        } else {
+                            comments[index].isliked = true;
+                            comments[index].likes++;
+                        }
+                        renderLike(commentEl, index);
+                    })
+                    .then(() => {
+                        likeBtn.classList.remove("-loading-like");
+                    });
+            });
     }
 };
 
@@ -70,7 +77,7 @@ export function initLoginListeners() {
                 renderCommentsPage();
             })
             .catch((error) => {
-                alert(error);
+                alert(error.message);
             });
     });
     registerBtnEl.addEventListener("click", (event) => {
@@ -89,13 +96,25 @@ export function initRegistrationListeners() {
 
     registerFrmEl.addEventListener("submit", (event) => {
         event.preventDefault();
-        register(nameEl.value, loginEl.value, passEl.value)
-            .then(() => {
-                renderCommentsPage();
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+        if (nameEl.value !== "" && loginEl.value !== "" && passEl.value !== "")
+            register(nameEl.value, loginEl.value, passEl.value)
+                .then(() => {
+                    renderCommentsPage();
+                })
+                .catch((error) => {
+                    alert(error.message);
+                });
+        else {
+            alert("Заполните все поля");
+            nameEl.style = "background-color: darkred";
+            loginEl.style = "background-color: darkred";
+            passEl.style = "background-color: darkred";
+            setTimeout(() => {
+                nameEl.style = "";
+                loginEl.style = "";
+                passEl.style = "";
+            }, 1000);
+        }
     });
 
     loginBtnEl.addEventListener("click", (event) => {
@@ -142,7 +161,7 @@ export const initAddListener = () => {
                 .then((response) => {
                     if (response.status === 400 || response.status === 500)
                         throw new Error(response.status);
-                    nameEl.value = "";
+                    //nameEl.value = "";
                     textEl.value = "";
                     return fetchAndRenderComments();
                 })

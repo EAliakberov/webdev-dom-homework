@@ -7,6 +7,10 @@ export const defaultUser = {
 };
 export let currentUser = { ...defaultUser };
 
+export function isUserAuthorized() {
+    return currentUser.token != defaultUser.token;
+}
+
 export function getComments() {
     return fetch(host + "/comments", {
         method: "GET",
@@ -51,7 +55,7 @@ export function login(login, password) {
                 id: data.user._id,
                 token: "Bearer " + data.user.token,
                 login: data.user.login,
-                img: data.user.imageUrl
+                img: data.user.imageUrl,
             };
             localStorage.setItem("currentUser", JSON.stringify(currentUser));
         });
@@ -67,6 +71,7 @@ export function register(name, login, password) {
                 return response.json().then((errorData) => {
                     throw new Error(errorData.error);
                 });
+                
             } else return response.json();
         })
         .then((data) => {
@@ -75,7 +80,7 @@ export function register(name, login, password) {
                 id: data.user._id,
                 token: "Bearer " + data.user.token,
                 login: data.user.login,
-                img: data.user.imageUrl
+                img: data.user.imageUrl,
             };
             localStorage.setItem("currentUser", JSON.stringify(currentUser));
         });
