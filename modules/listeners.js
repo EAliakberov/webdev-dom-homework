@@ -1,6 +1,18 @@
+import {
+    postComment,
+    login,
+    register,
+    currentUser,
+    isUserAuthorized,
+} from "./api.js";
 import { comments, updateComments } from "./comments.js";
-import { renderLike, fetchAndRenderComments } from "./fetchAndRender.js";
-import { commentsEl } from "./fetchAndRender.js";
+import {
+    renderLike,
+    fetchAndRenderComments,
+    renderRegistrationPage,
+    renderLoginPage,
+    renderCommentsPage,
+} from "./fetchAndRender.js";
 
 function delay(interval = 900) {
     return new Promise((resolve) => {
@@ -11,6 +23,7 @@ function delay(interval = 900) {
 }
 
 export const initListeners = () => {
+    const commentsEl = document.querySelector(".comments");
     const commentEls = commentsEl.querySelectorAll(".comment");
 
     const textEl = document.querySelector(".add-form-text");
@@ -28,26 +41,87 @@ export const initListeners = () => {
         });
 
         //Клик по лайку внутри коммента и вызов перерисовки только лайков
-        likeBtn.addEventListener("click", (event) => {
-            event.stopPropagation();
-            likeBtn.classList.add("-loading-like");
-            delay()
-                .then(() => {
-                    if (comments[index].isliked) {
-                        comments[index].isliked = false;
-                        comments[index].likes--;
-                    } else {
-                        comments[index].isliked = true;
-                        comments[index].likes++;
-                    }
-                    renderLike(commentEl, index);
-                })
-                .then(() => {
-                    likeBtn.classList.remove("-loading-like");
-                });
-        });
+        if (isUserAuthorized())
+            likeBtn.addEventListener("click", (event) => {
+                event.stopPropagation();
+                likeBtn.classList.add("-loading-like");
+                delay()
+                    .then(() => {
+                        if (comments[index].isliked) {
+                            comments[index].isliked = false;
+                            comments[index].likes--;
+                        } else {
+                            comments[index].isliked = true;
+                            comments[index].likes++;
+                        }
+                        renderLike(commentEl, index);
+                    })
+                    .then(() => {
+                        likeBtn.classList.remove("-loading-like");
+                    });
+            });
     }
 };
+
+export function initLoginListeners() {
+    const passEl = document.querySelector(".login-form-password");
+    const nameEl = document.querySelector(".login-form-name");
+
+    const registerBtnEl = document.querySelector(".login-form-register-btn");
+    const registerFrmEl = document.querySelector(".login-form");
+
+    registerFrmEl.addEventListener("submit", (event) => {
+        event.preventDefault();
+        login(nameEl.value, passEl.value)
+            .then(() => {
+                renderCommentsPage();
+            })
+            .catch((error) => {
+                alert(error.message);
+            });
+    });
+    registerBtnEl.addEventListener("click", (event) => {
+        event.stopPropagation();
+        renderRegistrationPage();
+    });
+}
+
+export function initRegistrationListeners() {
+    const passEl = document.querySelector(".registration-form-password");
+    const loginEl = document.querySelector(".registration-form-login");
+    const nameEl = document.querySelector(".registration-form-name");
+
+    const loginBtnEl = document.querySelector(".registration-form-login-btn");
+    const registerFrmEl = document.querySelector(".registration-form");
+
+    registerFrmEl.addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (nameEl.value !== "" && loginEl.value !== "" && passEl.value !== "")
+            register(nameEl.value, loginEl.value, passEl.value)
+                .then(() => {
+                    renderCommentsPage();
+                })
+                .catch((error) => {
+                    alert(error.message);
+                });
+        else {
+            alert("Заполните все поля");
+            nameEl.style = "background-color: darkred";
+            loginEl.style = "background-color: darkred";
+            passEl.style = "background-color: darkred";
+            setTimeout(() => {
+                nameEl.style = "";
+                loginEl.style = "";
+                passEl.style = "";
+            }, 1000);
+        }
+    });
+
+    loginBtnEl.addEventListener("click", (event) => {
+        event.stopPropagation();
+        renderLoginPage();
+    });
+}
 
 //Нажатие на кнопку
 export const initAddListener = () => {
@@ -55,6 +129,8 @@ export const initAddListener = () => {
     const nameEl = document.querySelector(".add-form-name");
     const addBtnEl = document.querySelector("button.add-form-button");
     const addForm = document.querySelector(".add-form");
+
+    const commentsEl = document.querySelector("ul.comments");
 
     addBtnEl.addEventListener("click", () => {
         if (nameEl.value.trim() === "" || textEl.value.trim() === "") {
@@ -81,17 +157,11 @@ export const initAddListener = () => {
         commentsEl.appendChild(statusEl);
 
         const addComment = () => {
-            return fetch(
-                "https://wedev-api.sky.pro/api/v1/:ealiakberov/comments",
-                {
-                    method: "POST",
-                    body: JSON.stringify({ ...newComment, forceError: true }),
-                },
-            )
+            return postComment(newComment)
                 .then((response) => {
                     if (response.status === 400 || response.status === 500)
                         throw new Error(response.status);
-                    nameEl.value = "";
+                    //nameEl.value = "";
                     textEl.value = "";
                     return fetchAndRenderComments();
                 })
@@ -111,6 +181,7 @@ export const initAddListener = () => {
                     }
                 });
         };
+
         addComment().finally(() => {
             addForm.style = "";
             statusEl.remove();

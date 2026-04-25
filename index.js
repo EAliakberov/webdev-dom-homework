@@ -1,8 +1,11 @@
 "use strict";
-import { firstLoading } from "./modules/fetchAndRender.js";
-import { initListeners } from "./modules/listeners.js";
+import { login } from "./modules/api.js";
+import {
+    renderCommentsPage,
+    renderLoginPage,
+} from "./modules/fetchAndRender.js";
+import { initListeners, initLoginListeners } from "./modules/listeners.js";
 
-initListeners();
-firstLoading();
+renderCommentsPage();
 
 console.log("It works!");
